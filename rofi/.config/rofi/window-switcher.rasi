@@ -1,0 +1,51 @@
+configuration {
+    modi: "window";
+    show-icons: true;
+    font: "JetBrainsMono Nerd Font 13";
+}
+
+window {
+    width: 900px;
+    location: center;
+    anchor: center;
+    y-offset: -100px;
+
+    border-radius: 16px;
+    background-color: rgba(20,20,20,0.85);
+}
+
+mainbox {
+    orientation: vertical;
+    children: [ listview ];
+    padding: 20px;
+}
+
+listview {
+    layout: horizontal;
+    spacing: 20px;
+    lines: 1;
+    columns: 6;
+    scrollbar: false;
+}
+
+element {
+    orientation: vertical;
+    padding: 10px;
+    border-radius: 12px;
+    background-color: transparent;
+}
+
+element selected {
+    background-color: rgba(255,255,255,0.15);
+}
+
+element-text {
+    margin: 5px 0 0 0;
+    horizontal-align: center;
+    font-size: 12px;
+}
+
+element-icon {
+    size: 48px;
+    horizontal-align: center;
+}

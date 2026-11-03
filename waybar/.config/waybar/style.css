@@ -1,0 +1,135 @@
+@import "./colors.css";
+
+* {
+    font-family: "JetBrainsMono Nerd Font";
+    font-size: 9px;
+    font-weight: bold;
+    min-height: 0;
+    background-color: transparent
+}
+
+window {
+  background-color: @background;
+}
+
+tooltip {
+    background: rgba(30, 34, 42, 0.95);
+    color: #7fffd4;
+    border: 1px solid #7fffd4;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+tooltip label {
+    color: #7fffd4;
+}
+
+#waybar {
+  background: alpha(@background, 0.6);
+}
+
+#waybar button:hover {
+    background: rgba(0x8a, 0x2b, 0xe2, 0.3);
+    background-image: none;
+    box-shadow: none;
+    text-shadow: none;
+}
+
+#workspaces {
+    margin: 1px 0;
+}
+
+#workspaces button {
+    color: @foreground;
+    padding: 0 2px;
+    border: none;
+    border-radius: 1rem;
+}
+
+#workspaces button.active {
+    color: #7fffd4;
+    border: 2px solid #114477;
+    padding: 0 8px;
+    margin: 0 2px;
+}
+
+#workspaces button.urgent {
+    background-color: #FF0000;
+    padding: 0 8px;
+}
+
+#tray,
+#cpu,
+#memory,
+#bluetooth,
+#network,
+#pulseaudio,
+#backlight,
+#battery,
+#clock {
+  margin: 2px;
+  padding-left: 1px;
+  padding-right: 1px;
+  color: @foreground;
+}
+
+#tray {
+    border-radius: 0;
+    border-right: 1px solid @foreground;
+    padding-right: 10px;
+    margin-right: 10px;
+}
+
+.modules-left > widget:first-child > #workspaces {
+  margin-left: 0;
+}
+
+.modules-right > widget:last-child > #workspaces {
+  margin-right: 0;
+}
+
+#battery icon {
+  color: red;
+}
+
+#battery.charging,
+#battery.plugged {
+  color: #ffffff;
+  background-color: #26a65b;
+}
+
+@keyframes blink {
+  to {
+    background-color: #ffffff;
+    color: #000000;
+  }
+}
+
+#battery.warning:not(.charging) {
+  background-color: #CCEE00;
+  color: #ffffff;
+  animation-name: blink;
+  animation-duration: 0.5s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+#battery.critical:not(.charging) {
+  background-color: #f53c3c;
+  color: #ffffff;
+  animation-name: blink;
+  animation-duration: 0.5s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+label:focus {
+  background-color: #000000;
+}
+
+#network.disconnected {
+  background-color: #f53c3c;
+}
+

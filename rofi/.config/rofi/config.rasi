@@ -1,0 +1,232 @@
+configuration {
+    modi: "drun,run,window,emoji:~/.config/rofi/scripts/emoji.sh";
+    show-icons: true;
+    icon-themes: "Papirus";
+    drun-display-format: "{icon} {name}";
+    location: 0;
+    mode-switcher: true;
+    sidebar-mode: true;
+    hide-scrollbar: true;
+
+    display-drun: "Apps";
+    display-run: "Run";
+    display-window: "Window";
+    display-emoji: "Emoji";
+}
+
+* {
+    text-color: #493522;
+    background-color: transparent;
+    background-image: none;
+}
+
+window {
+    width: 80%;
+    height: 80%;
+
+    location: center;
+    anchor: center;
+
+    background-color: transparent;
+    background-image: url("~/page.png", both);
+
+    border: 0px;
+}
+
+mainbox {
+    enabled: true;
+    orientation: horizontal;
+    children: [ left-page, right-page ];
+    background-color: transparent;
+}
+
+/* left page */
+
+left-page {
+    orientation: vertical;
+    width: 50%;
+    background-color: transparent;
+
+    children: [ top-spacer, textbox-mode-title, mode-area ];
+}
+
+textbox-mode-title {
+    expand: false;
+    content: "MODE";
+    font: "Noto Serif 22";
+    text-color: #654729;
+    horizontal-align: 0.7;
+}
+
+mode-area {
+    orientation: horizontal;
+
+    children: [ mode-area-left, mode-area-right ];
+}
+
+mode-area-left {
+    expand: false;
+    padding: 6%;
+
+    background-color: transparent;
+}
+
+mode-area-right {
+    children: [mode-switcher];
+}
+
+mode-switcher {
+    orientation: vertical;
+    background-color: transparent;
+    margin: 50px;
+}
+
+button {
+    background-color: #00000008;
+    text-color: #654729;
+    border-radius: 5px;
+
+    width: 70%;
+
+    padding: 20px;
+    cursor: pointer;
+    font: "Noto Serif 16";
+}
+
+button selected {
+    background-color: #9c774c55;
+    text-color: #382414;
+    border-color: #624321;
+}
+
+/* right page */
+
+right-page {
+    orientation: vertical;
+    width: 50%;
+    background-color: transparent;
+
+    children: [ top-spacer, textbox-theme-title, theme-area, bottom-spacer ];
+}
+
+textbox-theme-title {
+    expand: false;
+    content: "ITEM";
+    font: "Noto Serif 22";
+    text-color: #654729;
+    horizontal-align: 0.3;
+}
+
+theme-area {
+    orientation: horizontal;
+
+    children: [ theme-area-left, theme-area-right ];
+}
+
+theme-area-right {
+    expand: false;
+    padding: 0% 10% 0% 0%;
+
+    background-color: transparent;
+}
+
+theme-area-left {
+    orientation: vertical;
+    padding: 20px 40px;
+
+    children: [ inputbar, listview ];
+}
+
+inputbar {
+    padding: 0px 50px 20px;
+    background-color: transparent;
+    text-color: #654729;
+    border-radius: 5px;
+
+    children: [ prompt, entry ];
+}
+
+prompt {
+    enabled: false;
+    text-color: #765a38;
+}
+
+entry {
+    text-color: #493522;
+    placeholder: "";
+    placeholder-color: #8e795e;
+}
+
+listview {
+    enabled: true;
+    columns: 2;
+    lines: 3;
+    scrollbar: false;
+    fixed-height: true;
+    
+    border: 0px;
+    spacing: 7px;
+
+}
+
+element {
+    enabled: true;
+    border-radius: 5px;
+    padding: 10px;
+    spacing: 15px;
+    cursor: pointer;
+
+    highlight: none;
+    background-color: transparent;
+}
+
+element normal.normal {
+    background-color: transparent;
+    text-color: inherit;
+}
+
+element normal.urgent {
+    background-color: transparent;
+}
+
+element selected.normal {
+    background-color: #9c774c55;
+    text-color: #382414;
+}
+
+element-icon {
+    size: 20px;
+}
+
+element-text {
+    font: "Noto Serif 13";
+    text-color: #493522;
+    vertical-align: 0.5;
+}
+
+element alternate.normal {
+    background-color:            transparent;
+    text-color:                  inherit;
+}
+element alternate.urgent {
+    background-color:            transparent;
+    text-color:                  inherit;
+}
+element alternate.active {
+    background-color:            transparent;
+    text-color:                  inherit;
+}
+
+/* common */
+
+top-spacer {
+    expand: false;
+    padding: 4%;
+    background-color: transparent;
+}
+
+bottom-spacer {
+    expand: false;
+    padding: 7%;
+    background-color: transparent;
+}
