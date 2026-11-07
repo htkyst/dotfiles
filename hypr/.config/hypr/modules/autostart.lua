@@ -7,15 +7,16 @@ local app = require("modules.programs")
 --
 hl.on("hyprland.start", function () 
 --   hl.exec_cmd("nm-applet")
-    hl.exec_cmd(app.prostatus_bar)
+    hl.exec_cmd(app.status_bar)
     hl.exec_cmd(app.wallpaper)
     hl.exec_cmd(app.jp_input)
---  hl.exec_cmd(app.notification)
 --  Initial wallpaper
     hl.exec_cmd(
         "sleep 1 && awww img" .. app.init_wallpaper
     )
 --  Quickshell
-    hl.exec_cmd("qs -c bookshelf")
+    -- hl.exec_cmd("qs -c bookshelf")
+    hl.exec_cmd(app.qs_sidebar)
+    hl.exec_cmd(app.qs_notice)
 end)
 

@@ -10,7 +10,10 @@ M.lock          = "hyprlock"
 M.status_bar    = "waybar"
 M.wallpaper     = "awww-daemon"
 M.jp_input      = "fcitx5-remote -r & fcitx5 -d --replace"
--- M.notification  = "dunst"
+
+-- quickshell
+M.qs_sidebar = "qs -c sidebar"
+M.qs_notice = "qs -c notice"
 
 -- Scripts
 local scripts = "$HOME/.config/hypr/scripts/"
