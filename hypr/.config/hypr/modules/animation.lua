@@ -37,9 +37,9 @@ hl.config({
 
         blur = {
             enabled   = true,
-            size      = 8,
-            passes    = 2,
-            vibrancy  = 0.1696,
+            size      = 10,
+            passes    = 3,
+            vibrancy  = 0.2,
         },
     },
 
@@ -93,6 +93,15 @@ hl.animation({ leaf = "zoomFactor",    enabled = true,  speed = 7,    bezier = "
 --     border_size = 0,
 --     rounding    = 0,
 -- })
+
+hl.layer_rule({
+    name = "wlogout-blur",
+    match = {
+        namespace = "^logout_dialog$",
+    },
+    blur = true,
+    ignore_alpha = 0.1,
+})
 
 -- See https://wiki.hypr.land/configuring/layouts/dwindle-layout/ for more
 hl.config({

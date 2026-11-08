@@ -7,7 +7,7 @@ hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(app.menu))
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(app.terminal))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(app.fileManager))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(app.browser))
-hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(app.lock))
+hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(app.logout))
 hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd(app.menu_window))
 
 hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(app.show_keys))
