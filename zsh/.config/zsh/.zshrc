@@ -1,3 +1,4 @@
+# show fastfetch once on kitty
 if [[ -n "$KITTY_WINDOW_ID" ]]; then
     if [[ $(pgrep -u "$USER" -x kitty | wc -l) -eq 1 ]]; then
         fastfetch

@@ -10,7 +10,6 @@
     ],
 
     "modules-center": [
-        "custom/book"
     ],
 
     "modules-right": [
@@ -34,12 +33,6 @@
             "*": [1, 2, 3, 4, 5]
         },
         "tooltip": false
-    },
-
-    "custom/book": {
-      "format": "📜 ",
-      "tooltip": false,
-      "on-click": "qs -c bookshelf ipc call bookshelf toggle"
     },
 
     "tray": {
