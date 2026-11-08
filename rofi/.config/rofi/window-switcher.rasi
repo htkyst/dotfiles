@@ -1,51 +1,73 @@
+/* Wallpaper book: launch with scripts/wallpaper.sh. */
 configuration {
-    modi: "window";
     show-icons: true;
-    font: "JetBrainsMono Nerd Font 13";
+    font: "Noto Serif 13";
 }
-
+* {
+    background-color: transparent;
+    background-image: none;
+    text-color: #493522;
+}
 window {
-    width: 900px;
+    width: 80%;
+    height: 80%;
     location: center;
     anchor: center;
-    y-offset: -100px;
-
-    border-radius: 16px;
-    background-color: rgba(20,20,20,0.85);
+    border: 2px;
+    border-color: #b49a73;
+    border-radius: 12px;
+    background-color: #efe2c5;
+    background-image: url("~/page.png", both);
 }
-
 mainbox {
     orientation: vertical;
-    children: [ listview ];
-    padding: 20px;
+    padding: 6% 10%;
+    spacing: 16px;
+    children: [ textbox-title, listview, textbox-help ];
 }
-
+textbox-title {
+    expand: false;
+    content: "WALLPAPER BOOK";
+    font: "Noto Serif 22";
+    horizontal-align: 0.5;
+}
 listview {
     layout: horizontal;
-    spacing: 20px;
     lines: 1;
-    columns: 6;
+    columns: 1;
+    fixed-height: true;
+    dynamic: false;
     scrollbar: false;
+    cycle: true;
 }
-
 element {
     orientation: vertical;
-    padding: 10px;
-    border-radius: 12px;
-    background-color: transparent;
+    children: [ element-icon, element-text ];
+    padding: 12px;
+    spacing: 12px;
+    border: 1px;
+    border-color: #b49a73;
+    border-radius: 4px;
+    background-color: #fff9ec;
 }
-
-element selected {
-    background-color: rgba(255,255,255,0.15);
+element selected.normal {
+    background-color: #fff9ec;
+    text-color: #493522;
 }
-
-element-text {
-    margin: 5px 0 0 0;
-    horizontal-align: center;
-    font-size: 12px;
-}
-
 element-icon {
-    size: 48px;
-    horizontal-align: center;
+    expand: true;
+    size: 28ch;
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+}
+element-text {
+    expand: false;
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+}
+textbox-help {
+    expand: false;
+    content: "← / →  Previous / Next page     Enter  Apply     Esc  Close";
+    horizontal-align: 0.5;
+    font: "Noto Serif 11";
 }
