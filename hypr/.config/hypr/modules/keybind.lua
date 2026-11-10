@@ -11,6 +11,7 @@ hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(app.logout))
 hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd(app.menu_window))
 
 hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(app.show_keys))
+hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(app.qs_wallpaper .. " ipc call wallpaper toggle"))
 
 hl.bind(mainMod .. " + V", function()
     local monitor = hl.get_active_monitor()

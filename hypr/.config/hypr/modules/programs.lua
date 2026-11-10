@@ -15,6 +15,7 @@ M.jp_input      = "fcitx5-remote -r & fcitx5 -d --replace"
 -- quickshell
 M.qs_sidebar = "qs -c sidebar"
 M.qs_notice = "qs -c notice"
+M.qs_wallpaper = "qs -c wallpaper"
 
 -- Scripts
 local scripts = "$HOME/.config/hypr/scripts/"

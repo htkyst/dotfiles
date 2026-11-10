@@ -18,5 +18,6 @@ hl.on("hyprland.start", function ()
     -- hl.exec_cmd("qs -c bookshelf")
     hl.exec_cmd(app.qs_sidebar)
     hl.exec_cmd(app.qs_notice)
+    hl.exec_cmd(app.qs_wallpaper)
 end)
 
