@@ -1,5 +1,4 @@
 import QtQuick
-import "PageMesh.js" as Mesh
 
 Item {
     id: root
@@ -8,19 +7,18 @@ Item {
     property real bendY: 0
     property int direction: 1
     property bool turning: false
-    readonly property real bookScale: Math.max(0.01, Math.min(width / 1536, (height - 30) / 1024))
+    // Reserve space above the book for the lifted edge (and below for dragging).
+    readonly property real bookScale: Math.max(0.01, Math.min(width / 1536, (height - 30) / 1280))
     readonly property real bookX: (width - 1536 * bookScale) / 2
-    readonly property real bookY: (height - 30 - 1024 * bookScale) / 2
+    readonly property real bookY: (height - 30 - 1280 * bookScale) / 2 + 160 * bookScale
+
+    function clamp(value, low, high) { return Math.max(low, Math.min(high, value)); }
 
     function settle() {
         landing.to = progress >= 0.5 ? 1 : 0;
         landing.duration = 180 + 260 * Math.abs(landing.to - progress);
         landing.start();
     }
-
-    onProgressChanged: sheet.requestPaint()
-    onBendYChanged: sheet.requestPaint()
-    onTurningChanged: sheet.requestPaint()
 
     Image {
         x: root.bookX; y: root.bookY
@@ -29,27 +27,34 @@ Item {
         smooth: true
     }
 
-    Canvas {
+    // Image textures are uploaded once. Keep their original, full-canvas UVs.
+    Image {
+        id: rightTexture
+        source: "assets/page-right.png"
+        visible: false
+        smooth: true
+    }
+    Image {
+        id: leftTexture
+        source: "assets/page-left.png"
+        visible: false
+        smooth: true
+    }
+
+    ShaderEffect {
         id: sheet
-        anchors.fill: parent
-        renderTarget: Canvas.Image
-        readonly property url rightPage: Qt.resolvedUrl("assets/page-right.png")
-        readonly property url leftPage: Qt.resolvedUrl("assets/page-left.png")
-        Component.onCompleted: {
-            loadImage(rightPage);
-            loadImage(leftPage);
-        }
-        onImageLoaded: requestPaint()
-        onWidthChanged: requestPaint()
-        onHeightChanged: requestPaint()
-        onPaint: {
-            const ctx = getContext("2d");
-            ctx.reset();
-            if (!root.turning || !isImageLoaded(rightPage) || !isImageLoaded(leftPage))
-                return;
-            ctx.translate(root.bookX, root.bookY);
-            ctx.scale(root.bookScale, root.bookScale);
-            Mesh.paint(ctx, rightPage, leftPage, root.progress, root.direction, root.bendY);
+        objectName: "pageShader"
+        x: root.bookX; y: root.bookY - 160 * root.bookScale
+        width: 1536 * root.bookScale; height: 1280 * root.bookScale
+        visible: root.turning && rightTexture.status === Image.Ready && leftTexture.status === Image.Ready
+        property var rightPage: rightTexture
+        property var leftPage: leftTexture
+        property real progress: root.progress
+        property real direction: root.direction
+        property real bendY: root.bendY
+        fragmentShader: "shaders/page.frag.qsb"
+        onStatusChanged: {
+            if (status === ShaderEffect.Error) console.error("Book shader:", log);
         }
     }
 
@@ -95,8 +100,8 @@ Item {
         }
         onPositionChanged: mouse => {
             if (!pressed) return;
-            root.progress = Mesh.clamp(startProgress + root.direction * (startX - mouse.x) / (1220 * root.bookScale), 0, 1);
-            root.bendY = Mesh.clamp(startBend + (mouse.y - startY) / root.bookScale, -180, 180);
+            root.progress = root.clamp(startProgress + root.direction * (startX - mouse.x) / (1220 * root.bookScale), 0, 1);
+            root.bendY = root.clamp(startBend + (mouse.y - startY) / root.bookScale, -100, 100);
         }
         onReleased: root.settle()
         onCanceled: root.settle()
@@ -105,7 +110,9 @@ Item {
     Text {
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        text: "左右のページをドラッグしてめくる"
+        text: sheet.status === ShaderEffect.Error
+            ? "シェーダーを読み込めません。READMEの再ビルド手順を確認してください。"
+            : "左右のページをドラッグしてめくる"
         color: "#cdbb98"
         font.pixelSize: 13
     }

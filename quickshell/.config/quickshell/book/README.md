@@ -16,13 +16,45 @@ qs -p shell.qml
 - 同じ画像を繰り返し使うため、左右どちらへも何度でもめくれます。
 
 `Book.qml` は通常のQt Quickコンポーネント、`shell.qml` はQuickshellの
-ウィンドウです。`PageMesh.js` は紙の断面の接線を積分して曲面を作り、
-奥行き順に160本の帯を描画します。単なる平面回転ではありません。
-裏面には反対側のページ画像を使います。追加のQMLモジュールや
-コンパイル済みシェーダーは必要ありません。
+ウィンドウです。Canvasで160本の帯を描く旧実装を廃止し、
+`ShaderEffect` と `shaders/page.frag.qsb` でGPU描画します。
+画像は一度テクスチャへ読み込み、ドラッグ中は進行度・方向・上下移動の
+uniform値だけを更新します。
+
+フラグメントシェーダーは円筒状に曲げた紙の断面を逆算し、元のPNGの
+1536×1024座標からサンプリングします。透過余白をページ幅へ引き伸ばしません。
+同じ画面座標に表裏が重なる場合は奥行きを解決して合成します。
+反対側の画像を裏面に使い、曲率に応じた陰影と影を描画します。
+
+Qt 6.8のqsbで生成したシェーダーを同梱しています。通常は再ビルド不要です。
+OpenGL / Vulkan / D3D11 / Metal用のコードを含みます。
+Qt QuickのGPUバックエンドが必要で、softwareバックエンドには対応しません。
+
+シェーダーの変更時やQtとの互換性エラーがある場合は、実行環境のqsbで再生成します。
+
+```sh
+# Arch Linux
+sudo pacman -S qt6-shadertools
+sh build-shaders.sh
+# qsbの場所を明示する場合
+QSB=/usr/lib/qt6/bin/qsb sh build-shaders.sh
+```
 
 画像座標は付属素材の1536×1024、綴じ目x=768に合わせています。
-異なる素材へ置き換える場合はBook.qmlとPageMesh.jsの座標を調整してください。
+異なる素材へ置き換える場合はBook.qmlとshaders/page.fragの座標を調整してください。
+
+検証: Qt 6.8.3 / Windows / D3D11でGPU描画画像を確認し、左右ドラッグ・
+途中停止・リリース後の着地・繰り返し操作を自動テスト済みです。
+qmllintも通過しています。Linux上のQuickshellでの実行と実機FPSは未計測です。
+
+開発用の描画テストはPySide6がある環境で実行できます（アプリの実行には不要）。
+
+```sh
+python tests/render.py /tmp/book-render
+```
+
+参考: [Qt ShaderEffect](https://doc.qt.io/qt-6/qml-qtquick-shadereffect.html)、
+[qsb](https://doc.qt.io/qt-6/qtshadertools-qsb.html)。
 
 実行確認項目: 左右のドラッグ、途中停止、逆戻り、半分の前後でのリリース、
 着地中の再ドラッグ、連続めくり、ウィンドウのリサイズ。
