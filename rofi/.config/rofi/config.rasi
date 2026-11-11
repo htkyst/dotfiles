@@ -28,7 +28,7 @@ window {
     anchor: center;
 
     background-color: transparent;
-    background-image: url("~/page.png", both);
+    background-image: url("./assets/book-open.png", both);
 
     border: 0px;
 }

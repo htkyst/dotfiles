@@ -63,7 +63,7 @@ ShellRoot {
             }
         }
         onExited: code => {
-            if (code !== 0) root.message = "フォルダーを読み込めませんでした · " + root.directory
+            if (code !== 0) root.message = "Can't load folder " + root.directory
         }
     }
 
@@ -71,7 +71,7 @@ ShellRoot {
         id: apply
         onExited: code => {
             if (code === 0) root.opened = false
-            else root.message = "壁紙を設定できませんでした。awww-daemon の起動を確認してください。"
+            else root.message = "Unable to set the wallpaper. Please verify that awww-daemon is running."
         }
     }
 
@@ -89,8 +89,8 @@ ShellRoot {
             focus: true
             Keys.onPressed: event => {
                 switch (event.key) {
-                case Qt.Key_H: carousel.decrementCurrentIndex(); break
-                case Qt.Key_J: carousel.incrementCurrentIndex(); break
+                case Qt.Key_L: carousel.decrementCurrentIndex(); break
+                case Qt.Key_H: carousel.incrementCurrentIndex(); break
                 case Qt.Key_Return:
                 case Qt.Key_Enter:
                     const path = root.images[carousel.currentIndex]
@@ -153,29 +153,6 @@ ShellRoot {
                         sourceSize: root.thumbnailSize
                         fillMode: Image.PreserveAspectCrop
                     }
-                }
-            }
-
-            Column {
-                anchors.top: carousel.bottom
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: parent.width * 0.9
-                spacing: 10
-                Text {
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    text: root.message || (scan.running && !root.images.length ? "読み込み中…" :
-                          (root.images[carousel.currentIndex] || "").split("/").pop() ||
-                          "画像がありません · " + root.directory)
-                    textFormat: Text.PlainText
-                    elide: Text.ElideMiddle
-                    color: "#f2ece3"
-                    font.pixelSize: 22
-                }
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: "h  前へ     j  次へ     Enter  設定     Esc  閉じる"
-                    color: "#c2bdba"
                 }
             }
         }

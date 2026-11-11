@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-# Colors
+# ANSI Colors
 GREEN='\033[0;32m'
 RED='\033[0;31m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
 NC='\033[0m'
 
 info() {
@@ -11,6 +13,14 @@ info() {
 
 error() {
     printf "${RED}[ERROR] %s${NC}\n" "$1" >&2
+}
+
+warning() {
+    printf "${YELLOW}[WARN] %s${NC}\n" "$1" >&2
+}
+
+message() {
+    printf "${BLUE}[****] %s${NC}\n" "$1" >&2
 }
 
 print_cmd_already_installed() {
@@ -78,42 +88,63 @@ install_command_if_missing() {
     fi
 }
 
-# Get repository root directory
-repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-cd "$repo_dir" || exit 1
+move_to_repository_dir() {
+    # Get repository root directory
+    repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+    cd "$repo_dir" || exit 1
+    message "Moved to $repo_dir"
+}
 
-info "Update pacman"
-#sudo pacman -Syu --noconfirm
+update_package_manager() {
+    message "Update package manager"
+    sudo -v || exit 1
+    sudo pacman -Syu --noconfirm
+}
 
-# Install requirement
-install_command_if_missing git
-install_command_if_missing curl
-install_packages base-devel
+install_requirment() {
+    install_command_if_missing git
+    install_command_if_missing curl
+    install_packages base-devel
 
-install_command_if_missing fzf
-install_command_if_missing stow
+    install_command_if_missing fzf
+    install_command_if_missing stow
+}
 
-### Install fonts
-install_packages ttf-jetbrains-mono-nerd
-### Install jp input
-install_packages fcitx5-im fcitx5-mozc fcitx5-configtool fcitx5-gtk fcitx5-qt
-### Install sound control
-install_packages pipewire pipewire-audio pipewire-pulse wireplumber alsa-utils
+install_shell() {
+    ### Install zsh
+    install_packages zsh
+    ### Install oh-my-zsh
+    # sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+}
 
-### Install zsh
-install_packages zsh
-### Install oh-my-zsh
-# sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+install_aur_helper() {
+    ### Install yay
+    if ! command -v yay >/dev/null 2>&1; then
+        git clone https://aur.archlinux.org/yay.git
+        pushd yay
+        makepkg -si
+        popd
+    else
+        print_cmd_already_installed "yay"
+    fi
+}
 
-### Install yay
-if ! command -v yay >/dev/null 2>&1; then
-    git clone https://aur.archlinux.org/yay.git
-    pushd yay
-    makepkg -si
-    popd
-else
-    print_cmd_already_installed "yay"
-fi
+main() {
+    message "Run installation"
 
-echo ""
-echo "Completed."
+    move_to_repository_dir
+    update_package_manager
+    install_requirment
+    # Install fonts
+    install_packages ttf-jetbrains-mono-nerd
+    # Install jp input
+    install_packages fcitx5-im fcitx5-mozc fcitx5-configtool fcitx5-gtk fcitx5-qt
+    # Install sound control
+    install_packages pipewire pipewire-audio pipewire-pulse wireplumber alsa-utils
+    install_shell
+    install_aur_helper
+
+    message "Completed."
+}
+
+main "$@"

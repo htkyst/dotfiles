@@ -42,3 +42,10 @@ hl.window_rule({
     move  = "20 monitor_h-120",
     float = true,
 })
+
+hl.window_rule({
+    name = "firefox-opacity",
+    match = { class = "^firefox$" },
+
+    opacity = "0.70 override 0.70 override",
+})

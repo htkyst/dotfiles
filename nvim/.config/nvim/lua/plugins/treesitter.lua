@@ -16,6 +16,7 @@ return {
                 "lua",
                 "vim",
                 "vimdoc",
+                "bash",
             })
         end,
     },
