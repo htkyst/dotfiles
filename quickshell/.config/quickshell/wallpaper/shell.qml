@@ -1,4 +1,5 @@
 import QtQuick
+import QtQml.Models
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -9,6 +10,29 @@ ShellRoot {
     property var images: []
     property string message: ""
     readonly property string directory: Quickshell.env("WALLPAPER_DIR") || (Quickshell.env("HOME") + "/wallpaper")
+    readonly property size thumbnailSize: Qt.size(768, 432)
+
+    function imageUrl(path: string): string {
+        return "file://" + path.split("/").map(encodeURIComponent).join("/")
+    }
+
+    // Keep decoded previews alive even while the panel is hidden. Bound the
+    // preload window so large wallpaper folders do not exhaust memory.
+    Instantiator {
+        model: Math.min(root.images.length, 27)
+        delegate: Image {
+            required property int index
+            readonly property int imageIndex: (Math.max(0, carousel.currentIndex) + index
+                - Math.floor(Math.min(root.images.length, 27) / 2)
+                + root.images.length) % Math.max(1, root.images.length)
+            visible: false
+            source: root.images.length ? root.imageUrl(root.images[imageIndex]) : ""
+            asynchronous: true
+            cache: true
+            sourceSize: root.thumbnailSize
+            fillMode: Image.PreserveAspectCrop
+        }
+    }
 
     IpcHandler {
         target: "wallpaper"
@@ -23,11 +47,20 @@ ShellRoot {
 
     Process {
         id: scan
+        running: true
         command: ["find", "-L", root.directory, "-type", "f", "(", "-iname", "*.jpg",
                   "-o", "-iname", "*.jpeg", "-o", "-iname", "*.png", "-o", "-iname",
                   "*.webp", "-o", "-iname", "*.bmp", "-o", "-iname", "*.gif", ")", "-print0"]
         stdout: StdioCollector {
-            onStreamFinished: root.images = text.split("\u0000").filter(path => path.length > 0).sort()
+            onStreamFinished: {
+                const paths = text.split("\u0000").filter(path => path.length > 0).sort()
+                // Avoid rebuilding delegates and restarting image loads on every toggle.
+                if (paths.length === root.images.length &&
+                    paths.every((path, index) => path === root.images[index])) return
+                const selected = root.images[carousel.currentIndex]
+                root.images = paths
+                carousel.currentIndex = Math.max(0, paths.indexOf(selected))
+            }
         }
         onExited: code => {
             if (code !== 0) root.message = "フォルダーを読み込めませんでした · " + root.directory
@@ -61,7 +94,7 @@ ShellRoot {
                 case Qt.Key_Return:
                 case Qt.Key_Enter:
                     const path = root.images[carousel.currentIndex]
-                    if (path && !scan.running && !apply.running) {
+                    if (path && !apply.running) {
                         apply.command = ["awww", "img", path]
                         apply.running = true
                     }
@@ -79,6 +112,7 @@ ShellRoot {
                 height: parent.height * 0.58
                 model: root.images
                 pathItemCount: 9
+                cacheItemCount: 18
                 preferredHighlightBegin: 0.5
                 preferredHighlightEnd: 0.5
                 highlightRangeMode: PathView.StrictlyEnforceRange
@@ -113,9 +147,10 @@ ShellRoot {
                     Image {
                         anchors.fill: parent
                         anchors.margins: 2
-                        source: "file://" + card.modelData.split("/").map(encodeURIComponent).join("/")
+                        source: root.imageUrl(card.modelData)
                         asynchronous: true
-                        sourceSize.width: Math.ceil(card.width)
+                        cache: true
+                        sourceSize: root.thumbnailSize
                         fillMode: Image.PreserveAspectCrop
                     }
                 }
@@ -129,7 +164,7 @@ ShellRoot {
                 Text {
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
-                    text: root.message || (scan.running ? "読み込み中…" :
+                    text: root.message || (scan.running && !root.images.length ? "読み込み中…" :
                           (root.images[carousel.currentIndex] || "").split("/").pop() ||
                           "画像がありません · " + root.directory)
                     textFormat: Text.PlainText
