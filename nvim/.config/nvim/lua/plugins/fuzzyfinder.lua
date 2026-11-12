@@ -44,6 +44,12 @@ return {
 					filetypes = { "png", "webp", "jpg", "jpeg", "bmp" },
 				},
 			},
+            pickers = {
+                find_files = {
+                    hidden = true,
+                    no_ignore = true,
+                }
+            }
 		})
 
 		telescope.load_extension("fzf")

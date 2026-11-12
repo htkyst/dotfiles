@@ -19,18 +19,4 @@ return {
 			})
 		end,
 	},
-
-	{
-		-- Color highlighter
-		-- Need: TSInstall css, html, etc
-		"norcalli/nvim-colorizer.lua",
-		event = "VeryLazy",
-		config = function()
-			require("colorizer").setup({
-				"css",
-				"javascript",
-				"lua",
-			})
-		end,
-	},
 }
