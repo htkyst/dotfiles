@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QUrl, QPoint, Qt, qInstallMessageHandler
+from PySide6.QtCore import QUrl, QPoint, QPointF, Qt, qInstallMessageHandler
 from PySide6.QtGui import QGuiApplication, QColor
 from PySide6.QtQuick import QQuickView, QSGRendererInterface
 from PySide6.QtTest import QTest
@@ -105,57 +105,115 @@ def bookmark_center():
                   round(bookmark.y() + bookmark.height() / 2))
 
 
-def drop_bookmark(target):
-    QTest.mousePress(view, Qt.LeftButton, Qt.NoModifier, bookmark_center())
-    QTest.mouseMove(view, target, 30)
-    QTest.mouseRelease(view, Qt.LeftButton, Qt.NoModifier, target)
-    QTest.qWait(50)
-
-
-drop_bookmark(pos(1100, 300))
-assert book.property("hasBookmark")
-assert book.property("bookmarkSpread") == 0
-assert abs(book.property("bookmarkX") - 1100) < 3
-capture("bookmark_placed")
-
-for _ in range(3):
-    QTest.mousePress(view, Qt.LeftButton, Qt.NoModifier, pos(1320, 600))
-    QTest.mouseMove(view, pos(300, 600), 20)
-    QTest.mouseRelease(view, Qt.LeftButton, Qt.NoModifier, pos(300, 600))
+def turn(direction):
+    start, end = (1320, 300) if direction == 1 else (210, 1230)
+    QTest.mousePress(view, Qt.LeftButton, Qt.NoModifier, pos(start, 600))
+    QTest.mouseMove(view, pos(end, 600), 20)
+    QTest.mouseRelease(view, Qt.LeftButton, Qt.NoModifier, pos(end, 600))
     wait_for_landing()
-assert book.property("currentSpread") == 3, book.property("currentSpread")
-assert book.property("bookmarkSpread") == 0
-capture("bookmark_away")
-QTest.mouseClick(view, Qt.LeftButton, Qt.NoModifier, bookmark_center())
-assert book.property("currentSpread") == 0
-assert not book.property("turning")
-capture("bookmark_return")
 
-# Move the same bookmark onto a different spread's left page.
-book.setProperty("currentSpread", -2)
-drop_bookmark(pos(450, 350))
-assert book.property("bookmarkSpread") == -2
-assert abs(book.property("bookmarkX") - 450) < 3
-drop_bookmark(QPoint(10, 10))
-assert book.property("bookmarkSpread") == -2
-assert abs(book.property("bookmarkX") - 450) < 3
 
-# Interrupted turns must not finish later and overwrite a bookmark jump.
-book.setProperty("currentSpread", 4)
-QTest.mousePress(view, Qt.LeftButton, Qt.NoModifier, pos(1320, 600))
-QTest.mouseMove(view, pos(300, 600), 20)
-QTest.mouseRelease(view, Qt.LeftButton, Qt.NoModifier, pos(300, 600))
+assert book.property("currentPage") == 1
+turn(-1)
+assert book.property("currentPage") == 1
+for page in range(2, 9):
+    turn(1)
+    assert book.property("currentPage") == page
+turn(1)
+assert book.property("currentPage") == 8
+
+# Exercise the picker in a second native Qt window. The Linux-only PanelWindow
+# hosting/Wayland layer order must additionally be checked on Quickshell.
+picker_view = QQuickView()
+if os.environ.get("BOOK_TEST_HIDDEN"):
+    picker_view.setFlags(Qt.Tool | Qt.FramelessWindowHint)
+    picker_view.setOpacity(0)
+picker_view.setResizeMode(QQuickView.SizeRootObjectToView)
+picker_view.resize(1060, 740)
+picker_view.setSource(QUrl.fromLocalFile(str(Path(__file__).resolve().parents[1] / "PagePicker.qml")))
+assert not picker_view.errors()
+picker = picker_view.rootObject()
+picker.setProperty("pageImages", ["assets/siori.png"] * 8)
+
+
+def show_picker():
+    picker.setProperty("currentPage", book.property("currentPage"))
+    book.setEnabled(False)
+    picker_view.show()
+
+
+def dismiss_picker():
+    picker_view.hide()
+    book.setEnabled(True)
+
+
+def select_page(page):
+    dismiss_picker()
+    book.openPage(page)
+
+
+book.pickerRequested.connect(show_picker)
+picker.pageSelected.connect(select_page)
+picker.closeRequested.connect(dismiss_picker)
+
+
+def find_card(item, name):
+    # Repeater delegates belong to the visual tree, not necessarily the QObject tree.
+    if item.objectName() == name:
+        return item
+    for child in item.childItems():
+        result = find_card(child, name)
+        if result is not None:
+            return result
+    return None
+
+
+for page in range(1, 9):
+    QTest.mouseClick(view, Qt.LeftButton, Qt.NoModifier, bookmark_center())
+    QTest.qWait(100)
+    assert picker_view.isVisible()
+    card = find_card(picker, "pageCard" + str(page))
+    assert card is not None
+    center = card.mapToScene(QPointF(card.width() / 2, card.height() / 2)).toPoint()
+    if page == 1:
+        frame = picker_view.grabWindow()
+        assert not frame.isNull()
+        assert frame.save(str(output / "page_picker.png"))
+    QTest.mouseClick(picker_view, Qt.LeftButton, Qt.NoModifier, center)
+    assert not picker_view.isVisible()
+    assert book.property("currentPage") == page
+
+# Closing the picker without choosing preserves the current page.
 QTest.mouseClick(view, Qt.LeftButton, Qt.NoModifier, bookmark_center())
-QTest.qWait(600)
-assert book.property("currentSpread") == -2
-assert not book.property("turning")
-view.resize(1280, 800)
 QTest.qWait(100)
-assert abs(bookmark.x() + bookmark.width() / 2
-           - (book.property("bookX") + book.property("bookmarkX") * book.property("bookScale"))) < 1
+QTest.keyClick(picker_view, Qt.Key_Escape)
+assert not picker_view.isVisible()
+assert book.property("currentPage") == 8
+
+# Opening the picker cancels an in-flight turn; its completion cannot later
+# overwrite the selected destination.
+QTest.mousePress(view, Qt.LeftButton, Qt.NoModifier, pos(210, 600))
+QTest.mouseMove(view, pos(1230, 600), 20)
+QTest.mouseRelease(view, Qt.LeftButton, Qt.NoModifier, pos(1230, 600))
+QTest.mouseClick(view, Qt.LeftButton, Qt.NoModifier, bookmark_center())
+assert not book.property("turning")
+card = find_card(picker, "pageCard3")
+QTest.mouseClick(picker_view, Qt.LeftButton, Qt.NoModifier,
+                 card.mapToScene(QPointF(card.width() / 2, card.height() / 2)).toPoint())
+QTest.qWait(600)
+assert book.property("currentPage") == 3
+capture("page_selected")
+
+# The bookmark rail stays outside the entire book image at different sizes.
+for width, height in ((1280, 800), (640, 800), (1920, 1080)):
+    view.resize(width, height)
+    QTest.qWait(50)
+    assert bookmark.x() >= book.property("bookX") + 1536 * book.property("bookScale") + 23
+    assert bookmark.x() + bookmark.width() <= book.width()
+picker_view.close()
 
 errors = [m for m in messages if any(s in m.lower() for s in (
     "error", "failed", "cannot", "not found", "unable", "referenceerror"))]
 assert not errors, errors
-print("PASS: GPU frames, page turns, bookmark drag/drop, 3-page return, left-page relocation, invalid drop, interrupted turn, resize; no Qt errors")
+print("PASS: GPU frames, page limits 1-8, all 8 picker selections, picker dismiss, interrupted turn, non-overlapping bookmark rail; no Qt errors")
 view.close()
