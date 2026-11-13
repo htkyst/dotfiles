@@ -72,6 +72,15 @@ def pos(x, y):
     return QPoint(round(bx + x * scale), round(by + y * scale))
 
 
+def wait_for_landing():
+    # Hidden native windows can throttle animation delivery; wait for state.
+    for _ in range(100):
+        QTest.qWait(50)
+        if not book.property("turning"):
+            return
+    raise AssertionError("Page did not finish landing")
+
+
 for direction, start, end in ((1, 1320, 300), (-1, 210, 1230)):
     QTest.mousePress(view, Qt.LeftButton, Qt.NoModifier, pos(start, 500))
     QTest.mouseMove(view, pos((start + end) / 2, 540), 20)
@@ -83,12 +92,70 @@ for direction, start, end in ((1, 1320, 300), (-1, 210, 1230)):
     QTest.mouseMove(view, pos(end, 500), 20)
     assert book.property("progress") > 0.5
     QTest.mouseRelease(view, Qt.LeftButton, Qt.NoModifier, pos(end, 500))
-    QTest.qWait(600)
+    wait_for_landing()
     assert not book.property("turning")
     assert book.property("progress") == 0.0
+
+bookmark = book.findChild(type(book), "bookmark")
+assert bookmark is not None
+
+
+def bookmark_center():
+    return QPoint(round(bookmark.x() + bookmark.width() / 2),
+                  round(bookmark.y() + bookmark.height() / 2))
+
+
+def drop_bookmark(target):
+    QTest.mousePress(view, Qt.LeftButton, Qt.NoModifier, bookmark_center())
+    QTest.mouseMove(view, target, 30)
+    QTest.mouseRelease(view, Qt.LeftButton, Qt.NoModifier, target)
+    QTest.qWait(50)
+
+
+drop_bookmark(pos(1100, 300))
+assert book.property("hasBookmark")
+assert book.property("bookmarkSpread") == 0
+assert abs(book.property("bookmarkX") - 1100) < 3
+capture("bookmark_placed")
+
+for _ in range(3):
+    QTest.mousePress(view, Qt.LeftButton, Qt.NoModifier, pos(1320, 600))
+    QTest.mouseMove(view, pos(300, 600), 20)
+    QTest.mouseRelease(view, Qt.LeftButton, Qt.NoModifier, pos(300, 600))
+    wait_for_landing()
+assert book.property("currentSpread") == 3, book.property("currentSpread")
+assert book.property("bookmarkSpread") == 0
+capture("bookmark_away")
+QTest.mouseClick(view, Qt.LeftButton, Qt.NoModifier, bookmark_center())
+assert book.property("currentSpread") == 0
+assert not book.property("turning")
+capture("bookmark_return")
+
+# Move the same bookmark onto a different spread's left page.
+book.setProperty("currentSpread", -2)
+drop_bookmark(pos(450, 350))
+assert book.property("bookmarkSpread") == -2
+assert abs(book.property("bookmarkX") - 450) < 3
+drop_bookmark(QPoint(10, 10))
+assert book.property("bookmarkSpread") == -2
+assert abs(book.property("bookmarkX") - 450) < 3
+
+# Interrupted turns must not finish later and overwrite a bookmark jump.
+book.setProperty("currentSpread", 4)
+QTest.mousePress(view, Qt.LeftButton, Qt.NoModifier, pos(1320, 600))
+QTest.mouseMove(view, pos(300, 600), 20)
+QTest.mouseRelease(view, Qt.LeftButton, Qt.NoModifier, pos(300, 600))
+QTest.mouseClick(view, Qt.LeftButton, Qt.NoModifier, bookmark_center())
+QTest.qWait(600)
+assert book.property("currentSpread") == -2
+assert not book.property("turning")
+view.resize(1280, 800)
+QTest.qWait(100)
+assert abs(bookmark.x() + bookmark.width() / 2
+           - (book.property("bookX") + book.property("bookmarkX") * book.property("bookScale"))) < 1
 
 errors = [m for m in messages if any(s in m.lower() for s in (
     "error", "failed", "cannot", "not found", "unable", "referenceerror"))]
 assert not errors, errors
-print("PASS: GPU frames, both directions, frozen drag, release and repeat; no Qt errors")
+print("PASS: GPU frames, page turns, bookmark drag/drop, 3-page return, left-page relocation, invalid drop, interrupted turn, resize; no Qt errors")
 view.close()
