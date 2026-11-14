@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-pkg_aur=(
+pkg_yay=(
     # Background manager
     awww
     # Battery
@@ -56,8 +56,8 @@ if ! command -v yay &>/dev/null; then
 fi
 
 echo "Installing packages..."
-yay -S --needed "${pkg_yay[@]}"
-sudo pacman -S --needed "${pkg_pacman[@]}"
+yay -S --needed --noconfirm "${pkg_yay[@]}"
+sudo pacman -S --needed --noconfirm "${pkg_pacman[@]}"
 
 echo "All packages installed successfully."
 

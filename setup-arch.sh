@@ -118,6 +118,9 @@ check_requirement() {
 }
 
 install_requirment() {
+    install_command_if_missing base-devel
+    install_command_if_missing cmake
+    install_command_if_missing openssh
     install_command_if_missing fzf
     install_command_if_missing stow
 }
@@ -125,6 +128,7 @@ install_requirment() {
 install_shell() {
     ### Install zsh
     install_packages zsh
+    install_packages zsh-antidote
     ### Install oh-my-zsh
     # sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 }
@@ -150,6 +154,8 @@ main() {
     install_requirment
     # Install fonts
     install_packages ttf-jetbrains-mono-nerd
+    # Install fonts
+    install_packages noto-fonts noto-fonts-cjk noto-fonts-emoji
     # Install jp input
     install_packages fcitx5-im fcitx5-mozc fcitx5-configtool fcitx5-gtk fcitx5-qt
     # Install audio control
