@@ -62,7 +62,6 @@ install_packages() {
 
 install_command_if_missing() {
     local cmd="$1"
-    local package="${2:-$1}"
 
     # Check command
     if command -v "$cmd" >/dev/null 2>&1; then
@@ -70,11 +69,11 @@ install_command_if_missing() {
         return 0
     fi
 
-    info "Installing $package..."
+    info "Installing $cmd..."
 
     # Install package
-    if ! sudo pacman -S --needed --noconfirm "$package"; then
-        error "Failed to install $package."
+    if ! sudo pacman -S --needed --noconfirm "$cmd"; then
+        error "Failed to install $cmd."
         return 1
     fi
 
@@ -101,11 +100,24 @@ update_package_manager() {
     sudo pacman -Syu --noconfirm
 }
 
-install_requirment() {
-    install_command_if_missing git
-    install_command_if_missing curl
-    install_packages base-devel
+check_requirement() {
+    local commands=("git" "curl")
+    local cmd
+    local failed=0
 
+    for cmd in "${commands[@]}"; do
+        if ! command -v "$cmd" &>/dev/null; then
+            error "$cmd : not installed."
+            failed = 1
+        else
+            info "$cmd : already installed."
+        fi
+    done
+
+    return "$failed"
+}
+
+install_requirment() {
     install_command_if_missing fzf
     install_command_if_missing stow
 }
@@ -134,12 +146,13 @@ main() {
 
     move_to_repository_dir
     update_package_manager
+    check_requirement
     install_requirment
     # Install fonts
     install_packages ttf-jetbrains-mono-nerd
     # Install jp input
     install_packages fcitx5-im fcitx5-mozc fcitx5-configtool fcitx5-gtk fcitx5-qt
-    # Install sound control
+    # Install audio control
     install_packages pipewire pipewire-audio pipewire-pulse wireplumber alsa-utils
     install_shell
     install_aur_helper
