@@ -1,0 +1,60 @@
+[global]
+    # Position
+    monitor = 0
+    follow = none
+    origin = top-right
+    offset = (20, 20)
+
+    # サイズ
+    width = 350
+    height = (0, 150)
+    notification_limit = 5
+
+    # フォント
+    font = Noto Sans 11
+
+    # レイアウト
+    padding = 12
+    horizontal_padding = 16
+    text_icon_padding = 12
+    gap_size = 8
+
+    # 枠線と角丸
+    frame_width = 2
+    frame_color = "#89b4fa"
+    corner_radius = 12
+
+    # 表示内容
+    format = "<b>%s</b>\n%b"
+    alignment = left
+    vertical_alignment = center
+    word_wrap = yes
+    show_indicators = yes
+
+    # アイコン
+    icon_position = left
+    max_icon_size = 48
+
+    # 表示時間（秒）
+    timeout = 5
+
+    # Wayland
+    layer = overlay
+
+[urgency_low]
+    background = "#1e1e2e"
+    foreground = "#cdd6f4"
+    frame_color = "#6c7086"
+    timeout = 3
+
+[urgency_normal]
+    background = "#1e1e2e"
+    foreground = "#cdd6f4"
+    frame_color = "#89b4fa"
+    timeout = 5
+
+[urgency_critical]
+    background = "#1e1e2e"
+    foreground = "#f38ba8"
+    frame_color = "#f38ba8"
+    timeout = 0
